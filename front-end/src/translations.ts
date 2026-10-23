@@ -207,3 +207,14 @@ export const THEMES = [
 export function getTheme(id: string) {
   return THEMES.find((t) => t.id === id) || THEMES[0];
 }
+
+export function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return '';
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    return d.toISOString().split('T')[0];
+  } catch {
+    return dateString || '';
+  }
+}

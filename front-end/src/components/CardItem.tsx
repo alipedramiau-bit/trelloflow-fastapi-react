@@ -1,52 +1,58 @@
 import React from 'react';
 import {
-  AlignLeft,
-  CheckSquare,
-  MessageSquare,
   Clock,
+  CheckSquare2,
+  MessageSquare,
+  AlignLeft,
   CheckCircle2,
 } from 'lucide-react';
 import type { Card } from '../types';
-import type { Language } from '../translations';
+import { translations, type Language, formatDate } from '../translations';
 
 interface CardItemProps {
   card: Card;
   onClick: () => void;
-  lang: Language;
   onDragStart: (e: React.DragEvent, cardId: string, listId: string) => void;
+  lang: Language;
 }
 
 export const CardItem: React.FC<CardItemProps> = ({
   card,
   onClick,
-  lang,
   onDragStart,
+  lang,
 }) => {
-  // Format due date & calculate status
-  let dueDateText = '';
-  let dueDateStatus: 'overdue' | 'due-soon' | 'completed' | 'normal' = 'normal';
+  const t = translations[lang];
 
-  if (card.due_date) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  // Calculate Due Date Status
+  const getDueDateStatus = () => {
+    if (!card.due_date) return null;
+    if (card.is_completed) return 'completed';
+
     const due = new Date(card.due_date);
-    due.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const diffHours = (due.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-    const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffHours < 0) return 'overdue';
+    if (diffHours <= 24) return 'due-soon';
+    return 'normal';
+  };
 
-    if (card.is_completed) {
-      dueDateStatus = 'completed';
-    } else if (diffDays < 0) {
-      dueDateStatus = 'overdue';
-    } else if (diffDays <= 2) {
-      dueDateStatus = 'due-soon';
-    }
+  const dueDateStatus = getDueDateStatus();
+  const dueDateText =
+    dueDateStatus === 'completed'
+      ? t.completed
+      : dueDateStatus === 'overdue'
+      ? t.overdue
+      : dueDateStatus === 'due-soon'
+      ? t.dueSoon
+      : undefined;
 
-    dueDateText = card.due_date;
-  }
-
-  const hasChecklists = card.checklist_stats && card.checklist_stats.total > 0;
-  const checklistComplete =
+  const hasChecklists =
+    card.checklist_stats && card.checklist_stats.total > 0;
+  const hasComments =
+    typeof card.comment_count === 'number' && card.comment_count > 0;
+  const isAllChecklistDone =
     hasChecklists &&
     card.checklist_stats.completed === card.checklist_stats.total;
 
@@ -55,11 +61,11 @@ export const CardItem: React.FC<CardItemProps> = ({
       draggable
       onDragStart={(e) => onDragStart(e, card.id, card.list_id)}
       onClick={onClick}
-      className="group relative rounded-lg shadow-sm border hover:shadow-md transition duration-150 cursor-pointer overflow-hidden flex flex-col active:scale-[0.99]"
+      className="group relative rounded-xl shadow-md border hover:border-sky-400 transition-all duration-150 cursor-pointer overflow-hidden flex flex-col active:scale-[0.99]"
       style={{
-        backgroundColor: '#ffffff',
-        borderColor: '#e2e8f0',
-        color: '#0f172a',
+        backgroundColor: '#1e293b',
+        borderColor: '#334155',
+        color: '#ffffff',
       }}
     >
       {/* Cover Color Bar */}
@@ -77,7 +83,7 @@ export const CardItem: React.FC<CardItemProps> = ({
             {card.labels.map((lbl, idx) => (
               <span
                 key={lbl.id || (lbl as any).label_id || `${card.id}-lbl-${idx}`}
-                className="px-2 py-0.5 rounded text-[11px] font-semibold text-white tracking-wide shadow-xs"
+                className="px-2 py-0.5 rounded text-[11px] font-bold tracking-wide shadow-xs"
                 style={{ backgroundColor: lbl.color, color: '#ffffff' }}
               >
                 {lbl.name}
@@ -89,88 +95,116 @@ export const CardItem: React.FC<CardItemProps> = ({
         {/* Card Title */}
         <h4
           className="text-sm font-semibold leading-snug line-clamp-3 select-none"
-          style={{ color: '#0f172a' }}
+          style={{
+            color: '#ffffff',
+            textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+          }}
         >
           {card.title}
         </h4>
 
         {/* Card Badges Row */}
         <div
-          className="flex items-center justify-between text-xs pt-1 border-t mt-1"
-          style={{ borderColor: '#f1f5f9', color: '#64748b' }}
+          className="flex items-center justify-between text-xs pt-1.5 border-t mt-1"
+          style={{ borderColor: 'rgba(255, 255, 255, 0.1)', color: '#94a3b8' }}
         >
           <div className="flex items-center gap-2.5 flex-wrap">
             {/* Due Date Indicator */}
             {card.due_date && (
               <div
-                className={`flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded ${
-                  dueDateStatus === 'completed'
-                    ? 'text-emerald-700 bg-emerald-50'
-                    : dueDateStatus === 'overdue'
-                    ? 'text-rose-700 bg-rose-50'
-                    : dueDateStatus === 'due-soon'
-                    ? 'text-amber-700 bg-amber-50'
-                    : 'text-slate-600 bg-slate-100'
-                }`}
+                className="flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded border"
+                style={{
+                  backgroundColor:
+                    dueDateStatus === 'completed'
+                      ? 'rgba(6, 78, 59, 0.7)'
+                      : dueDateStatus === 'overdue'
+                      ? 'rgba(136, 19, 55, 0.7)'
+                      : dueDateStatus === 'due-soon'
+                      ? 'rgba(120, 53, 15, 0.7)'
+                      : 'rgba(51, 65, 85, 0.7)',
+                  color:
+                    dueDateStatus === 'completed'
+                      ? '#6ee7b7'
+                      : dueDateStatus === 'overdue'
+                      ? '#fda4af'
+                      : dueDateStatus === 'due-soon'
+                      ? '#fcd34d'
+                      : '#cbd5e1',
+                  borderColor:
+                    dueDateStatus === 'completed'
+                      ? 'rgba(16, 185, 129, 0.4)'
+                      : dueDateStatus === 'overdue'
+                      ? 'rgba(244, 63, 94, 0.4)'
+                      : dueDateStatus === 'due-soon'
+                      ? 'rgba(245, 158, 11, 0.4)'
+                      : 'rgba(100, 116, 139, 0.4)',
+                }}
                 title={dueDateText}
               >
                 {dueDateStatus === 'completed' ? (
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                 ) : (
                   <Clock className="w-3 h-3" />
                 )}
-                <span>{dueDateText}</span>
+                <span>{formatDate(card.due_date)}</span>
               </div>
             )}
 
-            {/* Description icon */}
-            {card.description && card.description.trim().length > 0 && (
-              <span title="دارای توضیحات" className="text-slate-400">
-                <AlignLeft className="w-3.5 h-3.5" />
+            {/* Description Icon */}
+            {card.description && (
+              <span title="دارای توضیحات" className="flex items-center">
+                <AlignLeft
+                  className="w-3.5 h-3.5"
+                  style={{ color: '#94a3b8' }}
+                />
               </span>
             )}
 
-            {/* Checklist progress */}
+            {/* Checklist Progress Badge */}
             {hasChecklists && (
               <div
-                className={`flex items-center gap-1 text-[11px] ${
-                  checklistComplete
-                    ? 'text-emerald-600 font-semibold'
-                    : 'text-slate-500'
-                }`}
-                title="وضعیت چک‌لیست"
+                className="flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded border"
+                style={{
+                  backgroundColor: isAllChecklistDone
+                    ? 'rgba(6, 78, 59, 0.7)'
+                    : 'rgba(51, 65, 85, 0.7)',
+                  color: isAllChecklistDone ? '#6ee7b7' : '#cbd5e1',
+                  borderColor: isAllChecklistDone
+                    ? 'rgba(16, 185, 129, 0.4)'
+                    : 'rgba(100, 116, 139, 0.4)',
+                }}
+                title={`${card.checklist_stats.completed} از ${card.checklist_stats.total} چک‌لیست تکمیل شده`}
               >
-                <CheckSquare className="w-3.5 h-3.5" />
+                <CheckSquare2 className="w-3 h-3" />
                 <span>
                   {card.checklist_stats.completed}/{card.checklist_stats.total}
                 </span>
               </div>
             )}
 
-            {/* Comments count */}
-            {card.comment_count > 0 && (
+            {/* Comments Count */}
+            {hasComments && (
               <div
-                className="flex items-center gap-1 text-[11px] text-slate-500"
+                className="flex items-center gap-1 text-[11px]"
+                style={{ color: '#94a3b8' }}
                 title={`${card.comment_count} نظر`}
               >
-                <MessageSquare className="w-3.5 h-3.5" />
+                <MessageSquare className="w-3 h-3" />
                 <span>{card.comment_count}</span>
               </div>
             )}
           </div>
 
-          {/* Members Avatars */}
+          {/* Assigned Members */}
           {card.members && card.members.length > 0 && (
-            <div className="flex -space-x-1.5 rtl:space-x-reverse overflow-hidden">
-              {card.members.map((m, idx) => (
+            <div className="flex items-center -space-x-1.5 rtl:space-x-reverse">
+              {card.members.map((member, idx) => (
                 <div
-                  key={`${card.id}-member-${m.name || idx}`}
-                  title={m.name}
-                  className={`w-6 h-6 rounded-full text-[10px] font-bold text-white flex items-center justify-center ring-2 ring-white shadow-xs ${
-                    m.color || 'bg-indigo-600'
-                  }`}
+                  key={idx}
+                  className={`w-5 h-5 rounded-full ${member.color} text-[10px] font-bold text-white flex items-center justify-center ring-1 ring-slate-800 shadow-xs`}
+                  title={member.name}
                 >
-                  {m.avatar || m.name.slice(0, 2)}
+                  {member.avatar}
                 </div>
               ))}
             </div>

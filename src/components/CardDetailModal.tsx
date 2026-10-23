@@ -298,7 +298,12 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto animate-fade-in">
       <div
-        className="relative w-full max-w-3xl rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-3xl rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[90vh]"
+        style={{
+          backgroundColor: '#0f172a',
+          borderColor: '#334155',
+          color: '#ffffff',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cover Banner */}
@@ -310,9 +315,12 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
         )}
 
         {/* Modal Header */}
-        <div className="p-4 sm:p-6 pb-3 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
+        <div
+          className="p-4 sm:p-6 pb-3 border-b flex items-start justify-between gap-4"
+          style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
+        >
           <div className="flex items-start gap-3 flex-1">
-            <CreditCard className="w-5 h-5 text-slate-500 mt-1 shrink-0" />
+            <CreditCard className="w-5 h-5 text-slate-400 mt-1 shrink-0" />
             <div className="flex-1">
               {isEditingTitle ? (
                 <input
@@ -325,12 +333,18 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                     if (e.key === 'Escape') setIsEditingTitle(false);
                   }}
                   autoFocus
-                  className="w-full text-lg sm:text-xl font-bold bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded border border-sky-500 outline-none text-slate-800 dark:text-slate-100"
+                  className="w-full text-lg sm:text-xl font-bold px-2 py-1 rounded border outline-none"
+                  style={{
+                    backgroundColor: '#1e293b',
+                    borderColor: '#38bdf8',
+                    color: '#ffffff',
+                  }}
                 />
               ) : (
                 <h2
                   onClick={() => setIsEditingTitle(true)}
-                  className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 px-1 py-0.5 rounded transition"
+                  className="text-lg sm:text-xl font-bold cursor-pointer hover:bg-white/10 px-1 py-0.5 rounded transition"
+                  style={{ color: '#ffffff' }}
                 >
                   {card.title}
                 </h2>
