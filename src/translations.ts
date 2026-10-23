@@ -153,6 +153,7 @@ export const THEMES = [
     nameFa: 'اقیانوس عمیق',
     nameEn: 'Deep Ocean',
     gradientClass: 'bg-gradient-to-br from-sky-800 via-indigo-900 to-slate-900',
+    solidBg: '#0b192c',
     headerClass: 'bg-sky-950/70 border-sky-800/40',
     accentColor: '#38bdf8'
   },
@@ -161,6 +162,7 @@ export const THEMES = [
     nameFa: 'غروب طلایی',
     nameEn: 'Golden Sunset',
     gradientClass: 'bg-gradient-to-br from-rose-800 via-orange-900 to-slate-900',
+    solidBg: '#2a0d16',
     headerClass: 'bg-rose-950/70 border-rose-800/40',
     accentColor: '#fb923c'
   },
@@ -169,6 +171,7 @@ export const THEMES = [
     nameFa: 'جنگل زمردین',
     nameEn: 'Emerald Forest',
     gradientClass: 'bg-gradient-to-br from-emerald-800 via-teal-900 to-slate-900',
+    solidBg: '#06231c',
     headerClass: 'bg-emerald-950/70 border-emerald-800/40',
     accentColor: '#34d399'
   },
@@ -177,6 +180,7 @@ export const THEMES = [
     nameFa: 'نیمه‌شب مدرن',
     nameEn: 'Modern Midnight',
     gradientClass: 'bg-gradient-to-br from-slate-900 via-zinc-900 to-stone-950',
+    solidBg: '#0f172a',
     headerClass: 'bg-zinc-950/80 border-zinc-800/60',
     accentColor: '#a1a1aa'
   },
@@ -185,6 +189,7 @@ export const THEMES = [
     nameFa: 'یاسی و بنفش',
     nameEn: 'Purple Lavender',
     gradientClass: 'bg-gradient-to-br from-purple-900 via-violet-950 to-slate-950',
+    solidBg: '#1a0b2e',
     headerClass: 'bg-purple-950/70 border-purple-800/40',
     accentColor: '#c084fc'
   },
@@ -193,6 +198,7 @@ export const THEMES = [
     nameFa: 'کهربایی گرم',
     nameEn: 'Warm Amber',
     gradientClass: 'bg-gradient-to-br from-amber-900 via-orange-950 to-stone-950',
+    solidBg: '#261304',
     headerClass: 'bg-amber-950/70 border-amber-800/40',
     accentColor: '#fbbf24'
   }

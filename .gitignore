@@ -12,3 +12,5 @@ __pycache__/
 *.db
 backend/*.db
 server.js
+.aistudio/
+public/assets/

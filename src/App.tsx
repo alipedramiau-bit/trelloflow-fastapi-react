@@ -330,6 +330,7 @@ export default function App() {
       className={`min-h-screen flex flex-col transition-colors duration-500 overflow-hidden ${
         currentTheme.gradientClass
       }`}
+      style={{ backgroundColor: (currentTheme as any).solidBg || '#0f172a' }}
     >
       {/* Top Application Header */}
       <Header
