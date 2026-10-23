@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { Card } from '../types';
 import { translations, type Language, formatDate } from '../translations';
+import { readableTextColor } from '../utils/color';
 
 interface CardItemProps {
   card: Card;
@@ -68,25 +69,36 @@ export const CardItem: React.FC<CardItemProps> = ({
         color: '#ffffff',
       }}
     >
-      {/* Cover Color Bar */}
+      {/* Cover: when a cover color is set, the card title sits ON the cover
+          with an automatically contrasting text color (dark on light covers,
+          white on dark ones) — title stays at the top of the card */}
       {card.cover_color && (
         <div
-          className="h-7 w-full transition"
-          style={{ backgroundColor: card.cover_color }}
-        />
+          className="px-3 pt-3 pb-1.5"
+          style={{
+            backgroundColor: card.cover_color,
+            color: readableTextColor(card.cover_color),
+          }}
+        >
+          <h4 className="text-sm font-semibold leading-snug line-clamp-3 select-none">
+            {card.title}
+          </h4>
+        </div>
       )}
 
       <div className="p-3 flex flex-col gap-2">
-        {/* Card Title (kept above the label chips) */}
-        <h4
-          className="text-sm font-semibold leading-snug line-clamp-3 select-none"
-          style={{
-            color: '#ffffff',
-            textShadow: '0 1px 2px rgba(0,0,0,0.4)',
-          }}
-        >
-          {card.title}
-        </h4>
+        {/* Card Title without cover (kept above the label chips) */}
+        {!card.cover_color && (
+          <h4
+            className="text-sm font-semibold leading-snug line-clamp-3 select-none"
+            style={{
+              color: '#ffffff',
+              textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+            }}
+          >
+            {card.title}
+          </h4>
+        )}
 
         {/* Labels Row */}
         {card.labels && card.labels.length > 0 && (
@@ -95,7 +107,10 @@ export const CardItem: React.FC<CardItemProps> = ({
               <span
                 key={lbl.id || (lbl as any).label_id || `${card.id}-lbl-${idx}`}
                 className="px-2 py-0.5 rounded text-[11px] font-bold tracking-wide shadow-xs"
-                style={{ backgroundColor: lbl.color, color: '#ffffff' }}
+                style={{
+                  backgroundColor: lbl.color,
+                  color: readableTextColor(lbl.color),
+                }}
               >
                 {lbl.name}
               </span>

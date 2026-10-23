@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import type { Card, Board, Label, Checklist, ChecklistItem } from '../types';
 import { translations, formatDate, type Language } from '../translations';
+import { readableTextColor } from '../utils/color';
 import { api } from '../api';
 
 interface CardDetailModalProps {
@@ -69,12 +70,13 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [descInput, setDescInput] = useState(card.description || '');
 
-  // Popover menus
-  const [labelMenuOpen, setLabelMenuOpen] = useState(false);
-  const [memberMenuOpen, setMemberMenuOpen] = useState(false);
-  const [coverMenuOpen, setCoverMenuOpen] = useState(false);
-  const [dateMenuOpen, setDateMenuOpen] = useState(false);
-  const [newChecklistOpen, setNewChecklistOpen] = useState(false);
+  // Popover menus — accordion behavior: only ONE menu can be open at a time.
+  // Opening a menu closes any previously opened one (user request).
+  type SidebarMenu = 'labels' | 'checklist' | 'date' | 'members' | 'cover';
+  const [openMenu, setOpenMenu] = useState<SidebarMenu | null>(null);
+  const toggleMenu = (menu: SidebarMenu) =>
+    setOpenMenu((prev) => (prev === menu ? null : menu));
+  const closeMenu = () => setOpenMenu(null);
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
 
   // Comment input
@@ -193,7 +195,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
       const updated = await api.updateCard(card.id, { due_date: dateStr });
       setCard((prev) => ({ ...prev, due_date: updated.due_date }));
       onUpdateCard({ ...card, due_date: updated.due_date });
-      setDateMenuOpen(false);
+      closeMenu();
     } catch (err) {
       console.error(err);
     }
@@ -205,7 +207,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
       const updated = await api.updateCard(card.id, { cover_color: color });
       setCard((prev) => ({ ...prev, cover_color: updated.cover_color }));
       onUpdateCard({ ...card, cover_color: updated.cover_color });
-      setCoverMenuOpen(false);
+      closeMenu();
     } catch (err) {
       console.error(err);
     }
@@ -218,7 +220,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     try {
       await api.createChecklist(card.id, newChecklistTitle.trim());
       setNewChecklistTitle('');
-      setNewChecklistOpen(false);
+      closeMenu();
       await fetchCardDetails();
     } catch (err) {
       console.error(err);
@@ -382,8 +384,11 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                     {card.labels.map((lbl, idx) => (
                       <span
                         key={lbl.id || (lbl as any).label_id || `modal-lbl-${idx}`}
-                        className="px-2.5 py-1 rounded text-xs font-semibold text-white shadow-xs"
-                        style={{ backgroundColor: lbl.color }}
+                        className="px-2.5 py-1 rounded text-xs font-semibold shadow-xs"
+                        style={{
+                          backgroundColor: lbl.color,
+                          color: readableTextColor(lbl.color),
+                        }}
                       >
                         {lbl.name}
                       </span>
@@ -717,18 +722,18 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                 {/* Labels Popover */}
                 <div className="relative">
                   <button
-                    onClick={() => setLabelMenuOpen(!labelMenuOpen)}
+                    onClick={() => toggleMenu('labels')}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 transition"
                   >
                     <Tag className="w-4 h-4 text-slate-500" />
                     <span>{t.labels}</span>
                   </button>
 
-                  {labelMenuOpen && (
+                  {openMenu === 'labels' && (
                     <div className="absolute right-0 rtl:left-0 rtl:right-auto top-full mt-1.5 w-64 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 z-30 space-y-3">
                       <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200 border-b pb-1.5">
                         <span>{t.labels}</span>
-                        <button onClick={() => setLabelMenuOpen(false)}>
+                        <button onClick={closeMenu}>
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -741,8 +746,11 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                             <button
                               key={lbl.id}
                               onClick={() => handleToggleLabel(lbl.id)}
-                              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold text-white shadow-xs transition"
-                              style={{ backgroundColor: lbl.color }}
+                              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold shadow-xs transition"
+                              style={{
+                                backgroundColor: lbl.color,
+                                color: readableTextColor(lbl.color),
+                              }}
                             >
                               <span>{lbl.name}</span>
                               {isSelected && <Check className="w-3.5 h-3.5" />}
@@ -786,14 +794,14 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                 {/* Add Checklist Modal */}
                 <div className="relative">
                   <button
-                    onClick={() => setNewChecklistOpen(!newChecklistOpen)}
+                    onClick={() => toggleMenu('checklist')}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 transition"
                   >
                     <CheckSquare className="w-4 h-4 text-slate-500" />
                     <span>{t.addChecklist}</span>
                   </button>
 
-                  {newChecklistOpen && (
+                  {openMenu === 'checklist' && (
                     <div className="absolute right-0 rtl:left-0 rtl:right-auto top-full mt-1.5 w-60 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 z-30 space-y-2.5">
                       <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
                         {t.addChecklist}
@@ -819,14 +827,14 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                 {/* Due Date Picker */}
                 <div className="relative">
                   <button
-                    onClick={() => setDateMenuOpen(!dateMenuOpen)}
+                    onClick={() => toggleMenu('date')}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 transition"
                   >
                     <Clock className="w-4 h-4 text-slate-500" />
                     <span>{t.dueDate}</span>
                   </button>
 
-                  {dateMenuOpen && (
+                  {openMenu === 'date' && (
                     <div className="absolute right-0 rtl:left-0 rtl:right-auto top-full mt-1.5 w-60 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 z-30 space-y-3">
                       <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
                         {t.dueDate}
@@ -852,14 +860,14 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                 {/* Assign Members */}
                 <div className="relative">
                   <button
-                    onClick={() => setMemberMenuOpen(!memberMenuOpen)}
+                    onClick={() => toggleMenu('members')}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 transition"
                   >
                     <UserPlus className="w-4 h-4 text-slate-500" />
                     <span>{t.members}</span>
                   </button>
 
-                  {memberMenuOpen && (
+                  {openMenu === 'members' && (
                     <div className="absolute right-0 rtl:left-0 rtl:right-auto top-full mt-1.5 w-60 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 z-30 space-y-2">
                       <div className="text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
                         {t.members}
@@ -895,14 +903,14 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                 {/* Cover Color Picker */}
                 <div className="relative">
                   <button
-                    onClick={() => setCoverMenuOpen(!coverMenuOpen)}
+                    onClick={() => toggleMenu('cover')}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 transition"
                   >
                     <Palette className="w-4 h-4 text-slate-500" />
                     <span>{t.coverColor}</span>
                   </button>
 
-                  {coverMenuOpen && (
+                  {openMenu === 'cover' && (
                     <div className="absolute right-0 rtl:left-0 rtl:right-auto top-full mt-1.5 w-64 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 z-30 space-y-2.5">
                       <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
                         {t.coverColor}
