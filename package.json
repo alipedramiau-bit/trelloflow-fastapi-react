@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "dev:backend": "python3 main.py --backend-only",
-    "dev:frontend": "vite --port 6100 --host 0.0.0.0",
+    "dev:backend": "python3 backend/main.py",
+    "dev:frontend": "cd front-end && npm run dev",
     "dev:all": "python3 main.py",
     "build": "vite build && esbuild server.ts --platform=node --format=esm --bundle --outfile=server.js --external:express --external:vite",
     "start": "node server.js",

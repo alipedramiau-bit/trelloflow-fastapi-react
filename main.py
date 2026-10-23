@@ -23,11 +23,13 @@ def start_vite_frontend(port: int = 6100):
     if is_port_in_use(port):
         print(f"ℹ️  Frontend already running on http://0.0.0.0:{port}", flush=True)
         return None
-    print(f"🌐 Launching Vite frontend on http://0.0.0.0:{port}...", flush=True)
+    frontend_dir = os.path.join(os.path.dirname(__file__), "front-end")
+    cwd = frontend_dir if os.path.isdir(frontend_dir) else os.path.dirname(__file__)
+    print(f"🌐 Launching Vite frontend on http://0.0.0.0:{port} from {os.path.basename(cwd)}...", flush=True)
     try:
         proc = subprocess.Popen(
             ["npx", "vite", f"--port={port}", "--host=0.0.0.0"],
-            cwd=os.path.dirname(__file__),
+            cwd=cwd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,

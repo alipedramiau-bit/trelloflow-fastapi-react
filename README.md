@@ -81,27 +81,23 @@ npm run dev:frontend
 ## 📁 Project Structure
 
 ```
-├── main.py                 # Main entrypoint: runs FastAPI on 6000 and Vite on 6100
+├── main.py                     # Root runner: runs FastAPI (6000) and Vite (6100)
 ├── backend/
-│   ├── server.py           # FastAPI REST API endpoints & Uvicorn runner
-│   └── database.py         # SQLite schema, migrations & seed data
-├── src/
-│   ├── App.tsx             # Main React application & state management
-│   ├── api.ts              # API client communicating with FastAPI
-│   ├── types.ts            # TypeScript definitions for Boards, Cards, Lists
-│   ├── translations.ts     # Persian & English translations and themes
-│   └── components/
-│       ├── LoginScreen.tsx       # Auth screen with AdminParsa credentials
-│       ├── Header.tsx            # Top bar, board switcher, theme picker
-│       ├── BoardView.tsx         # Kanban board layout with drag & drop
-│       ├── ListColumn.tsx        # Column with quick add and card drop zone
-│       ├── CardItem.tsx          # Card tile with badges & progress
-│       ├── CardDetailModal.tsx   # Comprehensive card modal
-│       ├── ActivityDrawer.tsx    # Slide-over audit history
-│       ├── FilterModal.tsx       # Multi-criteria card filtering
-│       └── ExportImportModal.tsx # JSON backup & restore
-├── package.json            # Scripts & npm dependencies
-└── vite.config.ts          # Vite configuration with port 6100 & API proxy
+│   ├── main.py                 # Backend entrypoint (Port 6000)
+│   ├── server.py               # FastAPI REST API & routes
+│   ├── database.py             # SQLite schema, migrations & seed data
+│   └── requirements.txt        # Python libraries list
+├── front-end/
+│   ├── package.json            # Frontend npm scripts & dependencies
+│   ├── vite.config.ts          # Vite configuration (Port 6100 & NAT settings)
+│   ├── index.html              # Frontend HTML entrypoint
+│   └── src/                    # React components, Kanban board, state & API
+│       ├── App.tsx             # Main React app & auth gate
+│       ├── api.ts              # API client connecting to FastAPI
+│       ├── types.ts            # TypeScript interfaces
+│       └── components/         # Kanban board, modals & login
+├── package.json                # Root scripts
+└── README.md
 ```
 
 ---
