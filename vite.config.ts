@@ -12,7 +12,11 @@ export default defineConfig(() => {
       },
     },
     server: {
+      host: '0.0.0.0',
       port: 6100,
+      strictPort: true,
+      allowedHosts: true as const,
+      cors: true,
       proxy: {
         '/api': {
           target: 'http://127.0.0.1:6000',
@@ -24,6 +28,13 @@ export default defineConfig(() => {
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
+    },
+    preview: {
+      host: '0.0.0.0',
+      port: 6100,
+      strictPort: true,
+      allowedHosts: true as const,
+      cors: true,
     },
   };
 });

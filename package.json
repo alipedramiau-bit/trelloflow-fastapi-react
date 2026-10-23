@@ -10,7 +10,7 @@
     "dev:all": "python3 main.py",
     "build": "vite build && esbuild server.ts --platform=node --format=esm --bundle --outfile=server.js --external:express --external:vite",
     "start": "node server.js",
-    "preview": "vite preview",
+    "preview": "vite preview --port 6100 --host 0.0.0.0",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
   },
