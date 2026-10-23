@@ -76,11 +76,16 @@ export const ListColumn: React.FC<ListColumnProps> = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`w-72 sm:w-80 shrink-0 flex flex-col max-h-[calc(100vh-140px)] rounded-xl bg-slate-100/95 dark:bg-slate-900/90 backdrop-blur-md border shadow-lg transition-all ${
+      className={`w-72 sm:w-80 shrink-0 flex flex-col max-h-[calc(100vh-140px)] rounded-xl border shadow-lg transition-all ${
         isDragOver
-          ? 'border-sky-400 ring-2 ring-sky-400/40 bg-sky-50/90'
-          : 'border-slate-200/80 dark:border-white/10'
+          ? 'border-sky-400 ring-2 ring-sky-400/40 bg-sky-950/80'
+          : 'border-slate-800'
       }`}
+      style={{
+        backgroundColor: '#0f172a',
+        borderColor: '#1e293b',
+        color: '#f8fafc',
+      }}
     >
       {/* List Header */}
       <div className="flex items-center justify-between px-3.5 py-3 border-b border-slate-200/60 dark:border-white/5 relative">

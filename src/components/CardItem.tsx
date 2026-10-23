@@ -55,7 +55,12 @@ export const CardItem: React.FC<CardItemProps> = ({
       draggable
       onDragStart={(e) => onDragStart(e, card.id, card.list_id)}
       onClick={onClick}
-      className="group relative bg-white hover:bg-slate-50/90 rounded-lg shadow-sm border border-slate-200/90 hover:border-slate-300 hover:shadow-md transition duration-150 cursor-pointer overflow-hidden flex flex-col active:scale-[0.99]"
+      className="group relative rounded-lg shadow-sm border hover:shadow-md transition duration-150 cursor-pointer overflow-hidden flex flex-col active:scale-[0.99]"
+      style={{
+        backgroundColor: '#ffffff',
+        borderColor: '#e2e8f0',
+        color: '#0f172a',
+      }}
     >
       {/* Cover Color Bar */}
       {card.cover_color && (
@@ -73,7 +78,7 @@ export const CardItem: React.FC<CardItemProps> = ({
               <span
                 key={lbl.id || (lbl as any).label_id || `${card.id}-lbl-${idx}`}
                 className="px-2 py-0.5 rounded text-[11px] font-semibold text-white tracking-wide shadow-xs"
-                style={{ backgroundColor: lbl.color }}
+                style={{ backgroundColor: lbl.color, color: '#ffffff' }}
               >
                 {lbl.name}
               </span>
@@ -82,12 +87,18 @@ export const CardItem: React.FC<CardItemProps> = ({
         )}
 
         {/* Card Title */}
-        <h4 className="text-sm font-semibold text-slate-800 leading-snug line-clamp-3 select-none">
+        <h4
+          className="text-sm font-semibold leading-snug line-clamp-3 select-none"
+          style={{ color: '#0f172a' }}
+        >
           {card.title}
         </h4>
 
-        {/* Card Badges Row (Zero-pill discipline: unboxed subtle text with typographic icons) */}
-        <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100 mt-1">
+        {/* Card Badges Row */}
+        <div
+          className="flex items-center justify-between text-xs pt-1 border-t mt-1"
+          style={{ borderColor: '#f1f5f9', color: '#64748b' }}
+        >
           <div className="flex items-center gap-2.5 flex-wrap">
             {/* Due Date Indicator */}
             {card.due_date && (
