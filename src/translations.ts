@@ -210,6 +210,12 @@ export function getTheme(id: string) {
 
 export function formatDate(dateString: string | null | undefined): string {
   if (!dateString) return '';
+  // Pure date values ("YYYY-MM-DD" or "YYYY-MM-DDTHH:mm:ss") are truncated
+  // as-is. Routing them through new Date()/toISOString() converts them to
+  // UTC first, which can shift the visible day by one in UTC+ timezones
+  // (e.g. Tehran) and made due dates look wrong.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+  if (/^\d{4}-\d{2}-\d{2}[T ]/.test(dateString)) return dateString.slice(0, 10);
   try {
     const d = new Date(dateString);
     if (isNaN(d.getTime())) return dateString;

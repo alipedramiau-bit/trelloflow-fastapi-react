@@ -77,6 +77,17 @@ export const CardItem: React.FC<CardItemProps> = ({
       )}
 
       <div className="p-3 flex flex-col gap-2">
+        {/* Card Title (kept above the label chips) */}
+        <h4
+          className="text-sm font-semibold leading-snug line-clamp-3 select-none"
+          style={{
+            color: '#ffffff',
+            textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+          }}
+        >
+          {card.title}
+        </h4>
+
         {/* Labels Row */}
         {card.labels && card.labels.length > 0 && (
           <div className="flex flex-wrap gap-1.5 items-center">
@@ -91,17 +102,6 @@ export const CardItem: React.FC<CardItemProps> = ({
             ))}
           </div>
         )}
-
-        {/* Card Title */}
-        <h4
-          className="text-sm font-semibold leading-snug line-clamp-3 select-none"
-          style={{
-            color: '#ffffff',
-            textShadow: '0 1px 2px rgba(0,0,0,0.4)',
-          }}
-        >
-          {card.title}
-        </h4>
 
         {/* Card Badges Row */}
         <div

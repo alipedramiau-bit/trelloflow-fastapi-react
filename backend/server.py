@@ -544,14 +544,21 @@ def update_card(card_id: str, payload: CardUpdate):
         if not current:
             raise HTTPException(status_code=404, detail="Card not found")
 
-        title = payload.title if payload.title is not None else current["title"]
-        description = payload.description if payload.description is not None else current["description"]
-        due_date = payload.due_date if payload.due_date is not None else current["due_date"]
-        is_completed = payload.is_completed if payload.is_completed is not None else current["is_completed"]
-        cover_color = payload.cover_color if payload.cover_color is not None else current["cover_color"]
+        # PATCH semantics: only overwrite fields that were actually sent in
+        # the request body. model_fields_set tells "field sent as null"
+        # (explicitly clear the value, e.g. removing a due date) apart from
+        # "field omitted" (keep the stored value). The previous
+        # "is not None" checks silently ignored null and made it impossible
+        # to clear due_date / cover_color from the UI.
+        sent = payload.model_fields_set
+        title = payload.title if "title" in sent else current["title"]
+        description = payload.description if "description" in sent else current["description"]
+        due_date = payload.due_date if "due_date" in sent else current["due_date"]
+        is_completed = payload.is_completed if "is_completed" in sent else current["is_completed"]
+        cover_color = payload.cover_color if "cover_color" in sent else current["cover_color"]
         
         members = current["members"]
-        if payload.members is not None:
+        if "members" in sent and payload.members is not None:
             members = json.dumps(payload.members)
 
         now = datetime.utcnow().isoformat()

@@ -162,9 +162,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             border: '1px solid #1d4ed8',
           }}
         >
-          <div className="flex items-center justify-between font-bold" style={{ color: '#93c5fd' }}>
+          <div className="flex items-center justify-between font-bold" style={{ color: '#e2e8f0' }}>
             <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-sky-400" />
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>
                 {lang === 'fa' ? 'حساب ادمین پیش‌فرض' : 'Default Admin Account'}
               </span>
@@ -173,7 +173,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               type="button"
               onClick={handleFillAdmin}
               className="text-[11px] underline font-medium cursor-pointer transition hover:text-white"
-              style={{ color: '#60a5fa' }}
+              style={{ color: '#e2e8f0' }}
             >
               {lang === 'fa' ? 'تکمیل خودکار فرم' : 'Auto-fill Form'}
             </button>
@@ -190,7 +190,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <span className="block text-[11px]" style={{ color: '#94a3b8' }}>
                 {lang === 'fa' ? 'نام کاربری:' : 'Username:'}
               </span>
-              <span className="font-mono font-bold text-xs" style={{ color: '#38bdf8' }}>
+              <span className="font-mono font-bold text-xs" style={{ color: '#f8fafc' }}>
                 AdminParsa
               </span>
             </div>
@@ -198,7 +198,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <span className="block text-[11px]" style={{ color: '#94a3b8' }}>
                 {lang === 'fa' ? 'رمز عبور:' : 'Password:'}
               </span>
-              <span className="font-mono font-bold text-xs" style={{ color: '#38bdf8' }}>
+              <span className="font-mono font-bold text-xs" style={{ color: '#f8fafc' }}>
                 Parsa@1405
               </span>
             </div>

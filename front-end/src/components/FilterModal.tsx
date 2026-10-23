@@ -52,7 +52,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       >
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-sky-500" />
+            <Filter className="w-4 h-4 text-white" />
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
               {t.filter}
             </h3>
@@ -89,7 +89,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 }
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-right transition border ${
                   filter.dueStatus === st.id
-                    ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-300 border-sky-400'
+                    ? 'bg-sky-50 dark:bg-sky-950/40 text-slate-700 dark:text-slate-100 border-sky-400'
                     : 'bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
                 }`}
               >

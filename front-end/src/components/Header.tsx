@@ -150,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({
                     }}
                     className={`w-full text-right flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ${
                       currentBoard?.id === b.id
-                        ? 'bg-sky-600/30 text-sky-200 border border-sky-500/30'
+                        ? 'bg-sky-600/30 text-white border border-sky-500/30'
                         : 'hover:bg-white/10 text-white/90'
                     }`}
                   >
@@ -251,7 +251,7 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={onOpenFilterModal}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition border ${
             activeFilterCount > 0
-              ? 'bg-sky-500/30 text-sky-200 border-sky-400/40'
+              ? 'bg-sky-500/30 text-white border-sky-400/40'
               : 'bg-white/10 hover:bg-white/20 border-white/10 text-white/90'
           }`}
         >
@@ -294,7 +294,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <span>{lang === 'fa' ? th.nameFa : th.nameEn}</span>
                     </div>
                     {currentBoard?.background === th.id && (
-                      <Check className="w-3.5 h-3.5 text-sky-400" />
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
                     )}
                   </button>
                 ))}
@@ -353,7 +353,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="font-semibold text-white/90 hidden sm:inline text-[11px]">
                 {currentUser.username}
               </span>
-              <span className="text-[10px] text-sky-300 font-medium hidden md:inline">
+              <span className="text-[10px] text-white font-medium hidden md:inline">
                 ({currentUser.role === 'admin' ? 'ادمین' : 'کاربر'})
               </span>
             </div>

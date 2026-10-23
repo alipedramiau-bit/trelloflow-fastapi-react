@@ -34,7 +34,7 @@ export const NewBoardModal: React.FC<NewBoardModalProps> = ({
       >
         <div className="flex items-center justify-between border-b pb-3 border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-sky-500" />
+            <Sparkles className="w-5 h-5 text-white" />
             <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
               {t.createNewBoard}
             </h3>
@@ -85,7 +85,7 @@ export const NewBoardModal: React.FC<NewBoardModalProps> = ({
                   </span>
                   {selectedBg === theme.id && (
                     <div className="absolute top-1.5 left-1.5 w-4 h-4 rounded-full bg-white text-slate-900 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-sky-600" />
+                      <Check className="w-3 h-3 text-white" />
                     </div>
                   )}
                 </button>

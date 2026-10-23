@@ -18,7 +18,7 @@ import {
   Send,
 } from 'lucide-react';
 import type { Card, Board, Label, Checklist, ChecklistItem } from '../types';
-import { translations, type Language } from '../translations';
+import { translations, formatDate, type Language } from '../translations';
 import { api } from '../api';
 
 interface CardDetailModalProps {
@@ -435,8 +435,8 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                           : 'text-slate-400'
                       }`}
                     />
-                    <span>{card.due_date}</span>
-                    {card.is_completed && (
+                    <span>{formatDate(card.due_date)}</span>
+                    {card.is_completed === 1 && (
                       <span className="text-[10px] text-emerald-600 font-bold">
                         ({t.completed})
                       </span>
@@ -458,7 +458,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                 {!isEditingDesc && card.description && (
                   <button
                     onClick={() => setIsEditingDesc(true)}
-                    className="text-xs text-sky-600 hover:text-sky-700 font-medium"
+                    className="text-xs text-white hover:text-slate-300 font-medium"
                   >
                     {t.edit}
                   </button>
@@ -523,7 +523,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <CheckSquare className="w-4 h-4 text-sky-600" />
+                          <CheckSquare className="w-4 h-4 text-emerald-600" />
                           <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">
                             {chk.title}
                           </h4>
@@ -568,7 +568,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                                 type="checkbox"
                                 checked={item.is_completed === 1}
                                 onChange={() => handleToggleChecklistItem(item)}
-                                className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300 cursor-pointer"
+                                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
                               />
                               <span
                                 className={`text-xs sm:text-sm text-slate-700 dark:text-slate-200 ${
@@ -632,7 +632,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                         ) : (
                           <button
                             onClick={() => setActiveNewItem(chk.id)}
-                            className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-sky-600 font-semibold transition py-1"
+                            className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-white font-semibold transition py-1"
                           >
                             <Plus className="w-3.5 h-3.5" />
                             <span>{t.addItem}</span>
@@ -833,9 +833,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                       </div>
                       <input
                         type="date"
-                        defaultValue={card.due_date || ''}
+                        value={card.due_date ? String(card.due_date).slice(0, 10) : ''}
                         onChange={(e) => handleSetDueDate(e.target.value || null)}
-                        className="w-full text-xs p-2 bg-slate-50 dark:bg-slate-800 border rounded outline-none"
+                        className="w-full text-xs p-2 bg-white text-slate-900 border border-slate-300 rounded outline-none"
                       />
                       {card.due_date && (
                         <button
@@ -883,7 +883,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                               <span>{mem.name}</span>
                             </div>
                             {isAssigned && (
-                              <Check className="w-3.5 h-3.5 text-sky-600" />
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
                             )}
                           </button>
                         );
