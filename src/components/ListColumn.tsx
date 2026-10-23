@@ -88,7 +88,7 @@ export const ListColumn: React.FC<ListColumnProps> = ({
       }}
     >
       {/* List Header */}
-      <div className="flex items-center justify-between px-3.5 py-3 border-b border-slate-200/60 dark:border-white/5 relative">
+      <div className="flex items-center justify-between px-3.5 py-3 border-b border-white/5 relative">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {isEditingTitle ? (
             <input
@@ -106,14 +106,15 @@ export const ListColumn: React.FC<ListColumnProps> = ({
           ) : (
             <h3
               onClick={() => setIsEditingTitle(true)}
-              className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate cursor-pointer hover:bg-slate-200/60 dark:hover:bg-white/10 px-1.5 py-0.5 rounded transition"
+              className="text-sm font-bold text-slate-100 truncate cursor-pointer hover:bg-white/10 px-1.5 py-0.5 rounded transition"
+              style={{ color: '#f1f5f9' }}
               title="برای ویرایش کلیک کنید"
             >
               {list.title}
             </h3>
           )}
 
-          <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-200/70 dark:bg-slate-800 px-1.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-semibold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded-full">
             {cards.length}
           </span>
         </div>
@@ -122,7 +123,7 @@ export const ListColumn: React.FC<ListColumnProps> = ({
         <div className="relative">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-1 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white rounded hover:bg-slate-200 dark:hover:bg-white/10 transition"
+            className="p-1 text-slate-300 hover:text-white rounded hover:bg-white/10 transition"
           >
             <MoreHorizontal className="w-4 h-4" />
           </button>
@@ -159,14 +160,14 @@ export const ListColumn: React.FC<ListColumnProps> = ({
         ))}
 
         {cards.length === 0 && !isAddingCard && (
-          <div className="py-6 text-center text-xs text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-lg">
+          <div className="py-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-700 rounded-lg">
             {t.dragHint}
           </div>
         )}
       </div>
 
       {/* List Footer: Quick Add Card Form or Add Card Button */}
-      <div className="p-2 border-t border-slate-200/60 dark:border-white/5">
+      <div className="p-2 border-t border-white/5">
         {isAddingCard ? (
           <form onSubmit={handleCreateCard} className="flex flex-col gap-2">
             <textarea
@@ -197,7 +198,7 @@ export const ListColumn: React.FC<ListColumnProps> = ({
               <button
                 type="button"
                 onClick={() => setIsAddingCard(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+                className="p-1.5 text-slate-400 hover:text-slate-200 transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -206,9 +207,9 @@ export const ListColumn: React.FC<ListColumnProps> = ({
         ) : (
           <button
             onClick={() => setIsAddingCard(true)}
-            className="w-full flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-white/10 rounded-lg transition"
+            className="w-full flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-white/10 rounded-lg transition"
           >
-            <Plus className="w-4 h-4 text-slate-500" />
+            <Plus className="w-4 h-4 text-slate-400" />
             <span>{t.addCard}</span>
           </button>
         )}
