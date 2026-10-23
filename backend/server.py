@@ -7,7 +7,9 @@ import os
 import uuid
 import json
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, date
+
+import jdatetime
 
 from fastapi import FastAPI, HTTPException, Body, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -51,6 +53,63 @@ def log_activity(conn, board_id: str, card_id: Optional[str], user_name: str, ac
     except Exception as e:
         print("Error logging activity:", e)
 
+# --- Jalali (Shamsi) calendar helpers ---
+# Due dates are stored as ISO Gregorian strings. The Jalali representation is
+# derived with the `jdatetime` library (see requirements.txt) and exposed to
+# the UI as `due_date_jalali` on every card payload. The frontend picker sends
+# `due_date_jalali` ("1404/08/15") and the backend converts it back to ISO.
+
+def iso_to_jalali(value):
+    """""Convert a stored ISO date/datetime string to a Jalali string.
+
+    "2025-11-06" -> "1404/08/15". A time part (HH:MM) is preserved when it is
+    meaningful (not midnight). Returns None for empty/invalid values.
+    """""
+    if not value:
+        return None
+    try:
+        s = str(value).strip()
+        if "T" in s:
+            date_part, time_part = s.split("T", 1)
+        elif " " in s:
+            date_part, time_part = s.split(" ", 1)
+        else:
+            date_part, time_part = s, None
+        g = date.fromisoformat(date_part)
+        j = jdatetime.date.fromgregorian(date=g)
+        out = "%d/%02d/%02d" % (j.year, j.month, j.day)
+        if time_part and not str(time_part).startswith("00:00"):
+            out += " " + ":".join(str(time_part).split(":")[:2])
+        return out
+    except Exception:
+        return None
+
+def jalali_to_iso(value):
+    """""Convert a Jalali string ("1404/08/15" optionally with "HH:MM") to ISO.
+
+    jdatetime validates the date, so impossible combinations (e.g. day 31 of
+    Mehr, or Esfand 30 in a non-leap year) raise ValueError.
+    """""
+    s = str(value).strip()
+    chunks = s.split()
+    if not chunks:
+        raise ValueError("Empty Jalali date")
+    ymd = chunks[0].replace("-", "/").split("/")
+    if len(ymd) != 3:
+        raise ValueError("Invalid Jalali date: %s" % value)
+    y, m, d = int(ymd[0]), int(ymd[1]), int(ymd[2])
+    j = jdatetime.date(y, m, d)
+    iso = j.togregorian().isoformat()
+    if len(chunks) > 1:
+        iso += "T" + chunks[1]
+    return iso
+
+def attach_jalali(card):
+    """""Attach the Jalali representation of due_date to a card dict."""""
+    if card is not None:
+        card["due_date_jalali"] = iso_to_jalali(card.get("due_date"))
+    return card
+
 # --- Pydantic Schemas ---
 class BoardCreate(BaseModel):
     title: str
@@ -74,6 +133,7 @@ class CardCreate(BaseModel):
     title: str
     description: Optional[str] = ""
     due_date: Optional[str] = None
+    due_date_jalali: Optional[str] = None
     cover_color: Optional[str] = None
     members: Optional[List[Dict[str, Any]]] = []
     user_name: Optional[str] = "کاربر"
@@ -82,6 +142,7 @@ class CardUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     due_date: Optional[str] = None
+    due_date_jalali: Optional[str] = None
     is_completed: Optional[int] = None
     cover_color: Optional[str] = None
     members: Optional[List[Dict[str, Any]]] = None
@@ -132,6 +193,31 @@ def health_check():
         "framework": "FastAPI + Uvicorn",
         "version": sys.version.split()[0],
         "server": "TrelloFlow FastAPI Server"
+    }
+
+@app.get("/api/utils/jalali-meta")
+def jalali_meta(from_year: int = 1390, to_year: int = 1430):
+    """Jalali calendar metadata for the frontend due-date picker.
+
+    Returns today in Shamsi plus the leap years of the requested range so the
+    UI can compute Esfand's length (29 or 30 days) without duplicating the
+    algorithm in JavaScript.
+    """
+    from_year = max(1178, min(from_year, to_year - 1))
+    to_year = min(1633, max(to_year, from_year + 1))
+    today_g = date.today()
+    today_j = jdatetime.date.fromgregorian(date=today_g)
+    leap_years = []
+    for y in range(from_year, to_year + 1):
+        try:
+            if jdatetime.date(y, 1, 1).isleap():
+                leap_years.append(y)
+        except Exception:
+            continue
+    return {
+        "today_jalali": "%d/%02d/%02d" % (today_j.year, today_j.month, today_j.day),
+        "today_iso": today_g.isoformat(),
+        "leap_years": leap_years,
     }
 
 # --- Authentication ---
@@ -332,7 +418,8 @@ def get_board(board_id: str):
             card["labels"] = labels_map.get(card["id"], [])
             card["checklist_stats"] = checklist_stats.get(card["id"], {"total": 0, "completed": 0})
             card["comment_count"] = comment_counts.get(card["id"], 0)
-            
+            attach_jalali(card)
+
             if card["list_id"] in cards_by_list:
                 cards_by_list[card["list_id"]].append(card)
 
@@ -472,10 +559,18 @@ def create_card(list_id: str, payload: CardCreate):
         title = payload.title.strip()
         members_json = json.dumps(payload.members or [])
 
+        # Jalali input wins when provided (the UI date picker is Shamsi)
+        due_date = payload.due_date
+        if payload.due_date_jalali is not None:
+            try:
+                due_date = jalali_to_iso(payload.due_date_jalali)
+            except (ValueError, IndexError) as exc:
+                raise HTTPException(status_code=400, detail="تاریخ جلالی نامعتبر است: %s" % exc)
+
         cursor.execute("""
             INSERT INTO cards (id, board_id, list_id, title, description, position, due_date, is_completed, cover_color, cover_image, members, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (card_id, board_id, list_id, title, payload.description or "", new_pos, payload.due_date, 0, payload.cover_color, None, members_json, now, now))
+        """, (card_id, board_id, list_id, title, payload.description or "", new_pos, due_date, 0, payload.cover_color, None, members_json, now, now))
 
         log_activity(conn, board_id, card_id, payload.user_name or "کاربر", f"کارت «{title}» را در لیست «{list_title}» ایجاد کرد")
         conn.commit()
@@ -486,7 +581,7 @@ def create_card(list_id: str, payload: CardCreate):
         card["labels"] = []
         card["checklist_stats"] = {"total": 0, "completed": 0}
         card["comment_count"] = 0
-        return card
+        return attach_jalali(card)
     finally:
         conn.close()
 
@@ -530,7 +625,7 @@ def get_card(card_id: str):
         cursor.execute("SELECT * FROM activities WHERE card_id = ? ORDER BY created_at DESC LIMIT 20", (card_id,))
         card["activities"] = [dict(r) for r in cursor.fetchall()]
 
-        return card
+        return attach_jalali(card)
     finally:
         conn.close()
 
@@ -554,6 +649,16 @@ def update_card(card_id: str, payload: CardUpdate):
         title = payload.title if "title" in sent else current["title"]
         description = payload.description if "description" in sent else current["description"]
         due_date = payload.due_date if "due_date" in sent else current["due_date"]
+        # Shamsi picker: when due_date_jalali is sent it overrides due_date.
+        # Sending null explicitly clears the due date.
+        if "due_date_jalali" in sent:
+            if payload.due_date_jalali is None:
+                due_date = None
+            else:
+                try:
+                    due_date = jalali_to_iso(payload.due_date_jalali)
+                except (ValueError, IndexError) as exc:
+                    raise HTTPException(status_code=400, detail="تاریخ جلالی نامعتبر است: %s" % exc)
         is_completed = payload.is_completed if "is_completed" in sent else current["is_completed"]
         cover_color = payload.cover_color if "cover_color" in sent else current["cover_color"]
         
@@ -578,7 +683,7 @@ def update_card(card_id: str, payload: CardUpdate):
         cursor.execute("SELECT * FROM cards WHERE id = ?", (card_id,))
         updated_card = dict(cursor.fetchone())
         updated_card["members"] = json.loads(updated_card["members"])
-        return updated_card
+        return attach_jalali(updated_card)
     finally:
         conn.close()
 

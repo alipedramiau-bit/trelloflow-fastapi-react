@@ -161,7 +161,7 @@ export const CardItem: React.FC<CardItemProps> = ({
                 ) : (
                   <Clock className="w-3 h-3" />
                 )}
-                <span>{formatDate(card.due_date)}</span>
+                <span dir="ltr">{card.due_date_jalali || formatDate(card.due_date)}</span>
               </div>
             )}
 

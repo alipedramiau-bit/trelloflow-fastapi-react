@@ -68,6 +68,7 @@ export interface Card {
   description: string;
   position: number;
   due_date: string | null;
+  due_date_jalali?: string | null;
   is_completed: number;
   cover_color: string | null;
   cover_image: string | null;
@@ -112,6 +113,13 @@ export interface FilterState {
   search: string;
   labelIds: string[];
   dueStatus: 'all' | 'overdue' | 'today' | 'completed' | 'nodate';
+}
+
+// Served by GET /api/utils/jalali-meta (backend: jdatetime library)
+export interface JalaliMeta {
+  today_jalali: string;
+  today_iso: string;
+  leap_years: number[];
 }
 
 export type ThemeBackground = 'ocean' | 'sunset' | 'forest' | 'midnight' | 'lavender' | 'amber';

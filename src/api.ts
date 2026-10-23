@@ -1,4 +1,4 @@
-import type { Board, Card, List, Label, Checklist, ChecklistItem, Comment, Activity } from './types';
+import type { Board, Card, List, Label, Checklist, ChecklistItem, Comment, Activity, JalaliMeta } from './types';
 
 const API_BASE = '/api';
 
@@ -108,12 +108,19 @@ export const api = {
     return handleResponse(res);
   },
 
-  async updateCard(cardId: string, data: Partial<Card>): Promise<Card> {
+  async updateCard(cardId: string, data: Partial<Card> & { due_date_jalali?: string | null }): Promise<Card> {
     const res = await fetch(`${API_BASE}/cards/${cardId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+    return handleResponse(res);
+  },
+
+  // Jalali (Shamsi) calendar metadata for the due-date picker: today in
+  // Shamsi + leap years, so the UI never duplicates the conversion math.
+  async getJalaliMeta(): Promise<JalaliMeta> {
+    const res = await fetch(`${API_BASE}/utils/jalali-meta?from_year=1390&to_year=1430`);
     return handleResponse(res);
   },
 

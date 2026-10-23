@@ -17,9 +17,10 @@ import {
   Calendar,
   Send,
 } from 'lucide-react';
-import type { Card, Board, Label, Checklist, ChecklistItem } from '../types';
+import type { Card, Board, Label, Checklist, ChecklistItem, JalaliMeta } from '../types';
 import { translations, formatDate, type Language } from '../translations';
 import { readableTextColor } from '../utils/color';
+import { parseJalaliString, formatJalali, jalaliMonthLength, type JalaliParts } from '../utils/jalali';
 import { api } from '../api';
 
 interface CardDetailModalProps {
@@ -49,6 +50,26 @@ const AVAILABLE_MEMBERS = [
   { name: 'محمد احمدی', avatar: 'MA', color: 'bg-emerald-600' },
   { name: 'نیلوفر مهرابی', avatar: 'NM', color: 'bg-rose-600' },
 ];
+
+// Cached Jalali (Shamsi) calendar metadata — today + leap years. Shared by
+// every modal instance so /api/utils/jalali-meta is fetched once per session.
+let jalaliMetaCache: JalaliMeta | null = null;
+let jalaliMetaPromise: Promise<JalaliMeta | null> | null = null;
+function loadJalaliMeta(): Promise<JalaliMeta | null> {
+  if (!jalaliMetaPromise) {
+    jalaliMetaPromise = api
+      .getJalaliMeta()
+      .then((meta) => {
+        jalaliMetaCache = meta;
+        return meta;
+      })
+      .catch(() => {
+        jalaliMetaPromise = null; // allow a retry on the next open
+        return null;
+      });
+  }
+  return jalaliMetaPromise;
+}
 
 export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   card: initialCard,
@@ -90,6 +111,25 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   const [newLabelName, setNewLabelName] = useState('');
   const [newLabelColor, setNewLabelColor] = useState(PRESET_COLORS[0]);
 
+  // Jalali (Shamsi) due-date picker state
+  const [jalaliMeta, setJalaliMeta] = useState<JalaliMeta | null>(jalaliMetaCache);
+  const [jalaliSel, setJalaliSel] = useState<JalaliParts | null>(null);
+
+  useEffect(() => {
+    if (!jalaliMetaCache) {
+      loadJalaliMeta().then((meta) => {
+        if (meta) setJalaliMeta(meta);
+      });
+    }
+  }, []);
+
+  // Once metadata arrives, default the selection to today if nothing picked
+  useEffect(() => {
+    if (jalaliMeta && openMenu === 'date' && !jalaliSel) {
+      setJalaliSel(parseJalaliString(jalaliMeta.today_jalali));
+    }
+  }, [jalaliMeta, openMenu, jalaliSel]);
+
   // Load detailed card with checklists and comments
   const fetchCardDetails = async () => {
     try {
@@ -108,6 +148,24 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   }, [card.id]);
 
   const currentList = board.lists?.find((l) => l.id === card.list_id);
+
+  // Dropdown ranges for the Jalali picker (today ± 8 years, plus the
+  // currently selected year when it falls outside that window)
+  const jalaliYearRange: number[] = [];
+  if (jalaliMeta) {
+    const today = parseJalaliString(jalaliMeta.today_jalali);
+    if (today) {
+      for (let y = today.y - 8; y <= today.y + 8; y++) jalaliYearRange.push(y);
+    }
+  }
+  if (jalaliSel && jalaliYearRange.indexOf(jalaliSel.y) === -1) {
+    jalaliYearRange.push(jalaliSel.y);
+    jalaliYearRange.sort((a, b) => a - b);
+  }
+  const maxJalaliDay =
+    jalaliSel && jalaliMeta
+      ? jalaliMonthLength(jalaliSel.m, jalaliSel.y, jalaliMeta.leap_years)
+      : 31;
 
   // Save Title
   const handleSaveTitle = async () => {
@@ -189,16 +247,65 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     }
   };
 
-  // Set Due Date
+  // Set Due Date (ISO string or null to clear) — kept for the clear button
   const handleSetDueDate = async (dateStr: string | null) => {
     try {
       const updated = await api.updateCard(card.id, { due_date: dateStr });
-      setCard((prev) => ({ ...prev, due_date: updated.due_date }));
-      onUpdateCard({ ...card, due_date: updated.due_date });
+      setCard((prev) => ({ ...prev, due_date: updated.due_date, due_date_jalali: updated.due_date_jalali }));
+      onUpdateCard({ ...card, due_date: updated.due_date, due_date_jalali: updated.due_date_jalali });
       closeMenu();
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // Set Due Date from the Jalali (Shamsi) picker — the backend converts
+  // "YYYY/MM/DD" Shamsi input to ISO and returns both representations.
+  const handleSetDueDateJalali = async (parts: JalaliParts) => {
+    try {
+      const updated = await api.updateCard(card.id, {
+        due_date_jalali: formatJalali(parts),
+      });
+      setCard((prev) => ({
+        ...prev,
+        due_date: updated.due_date,
+        due_date_jalali: updated.due_date_jalali,
+      }));
+      onUpdateCard({
+        ...card,
+        due_date: updated.due_date,
+        due_date_jalali: updated.due_date_jalali,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Apply a Shamsi dropdown change (clamping the day to the month length)
+  const changeJalali = (field: 'y' | 'm' | 'd', value: number) => {
+    if (!jalaliSel) return;
+    const next = { ...jalaliSel, [field]: value } as JalaliParts;
+    const maxDay = jalaliMeta
+      ? jalaliMonthLength(next.m, next.y, jalaliMeta.leap_years)
+      : 31;
+    if (next.d > maxDay) next.d = maxDay;
+    setJalaliSel(next);
+    handleSetDueDateJalali(next);
+  };
+
+  // Open the Jalali date picker, pre-selecting the current due date or today
+  const openDatePicker = () => {
+    if (openMenu === 'date') {
+      closeMenu();
+      return;
+    }
+    setOpenMenu('date');
+    const fromCard = parseJalaliString(card.due_date_jalali);
+    if (fromCard) {
+      setJalaliSel(fromCard);
+      return;
+    }
+    setJalaliSel(parseJalaliString(jalaliMeta ? jalaliMeta.today_jalali : null));
   };
 
   // Set Cover Color
@@ -440,7 +547,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                           : 'text-slate-400'
                       }`}
                     />
-                    <span>{formatDate(card.due_date)}</span>
+                    <span dir="ltr">{card.due_date_jalali || formatDate(card.due_date)}</span>
                     {card.is_completed === 1 && (
                       <span className="text-[10px] text-emerald-600 font-bold">
                         ({t.completed})
@@ -824,10 +931,10 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                   )}
                 </div>
 
-                {/* Due Date Picker */}
+                {/* Due Date Picker (Jalali / Shamsi calendar) */}
                 <div className="relative">
                   <button
-                    onClick={() => toggleMenu('date')}
+                    onClick={openDatePicker}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 transition"
                   >
                     <Clock className="w-4 h-4 text-slate-500" />
@@ -835,16 +942,72 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
                   </button>
 
                   {openMenu === 'date' && (
-                    <div className="absolute right-0 rtl:left-0 rtl:right-auto top-full mt-1.5 w-60 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 z-30 space-y-3">
-                      <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                        {t.dueDate}
+                    <div className="absolute right-0 rtl:left-0 rtl:right-auto top-full mt-1.5 w-72 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-3 z-30 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                          {t.dueDate}{' '}
+                          <span className="font-medium text-slate-400">({t.jalaliCalendar})</span>
+                        </div>
+                        {card.due_date_jalali && (
+                          <span
+                            dir="ltr"
+                            className="text-[11px] font-bold text-sky-600 dark:text-sky-400"
+                          >
+                            {card.due_date_jalali}
+                          </span>
+                        )}
                       </div>
-                      <input
-                        type="date"
-                        value={card.due_date ? String(card.due_date).slice(0, 10) : ''}
-                        onChange={(e) => handleSetDueDate(e.target.value || null)}
-                        className="w-full text-xs p-2 bg-white text-slate-900 border border-slate-300 rounded outline-none"
-                      />
+
+                      {/* Three native selects — legacy-browser friendly,
+                          day list clamped by Jalali month length */}
+                      <div className="grid grid-cols-3 gap-1.5" dir="rtl">
+                        <select
+                          value={jalaliSel ? String(jalaliSel.d) : ''}
+                          onChange={(e) => changeJalali('d', parseInt(e.target.value, 10))}
+                          disabled={!jalaliSel}
+                          aria-label={t.jalaliDay}
+                          className="w-full text-xs p-1.5 bg-white text-slate-900 border border-slate-300 rounded outline-none"
+                        >
+                          <option value="">{t.jalaliDay}</option>
+                          {jalaliSel &&
+                            Array.from({ length: maxJalaliDay }, (_, i) => i + 1).map((d) => (
+                              <option key={d} value={d}>
+                                {d}
+                              </option>
+                            ))}
+                        </select>
+                        <select
+                          value={jalaliSel ? String(jalaliSel.m) : ''}
+                          onChange={(e) => changeJalali('m', parseInt(e.target.value, 10))}
+                          disabled={!jalaliSel}
+                          aria-label={t.jalaliMonth}
+                          className="w-full text-xs p-1.5 bg-white text-slate-900 border border-slate-300 rounded outline-none"
+                        >
+                          <option value="">{t.jalaliMonth}</option>
+                          {t.jalaliMonths.map((name, i) => (
+                            <option key={i + 1} value={i + 1}>
+                              {name}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          value={jalaliSel ? String(jalaliSel.y) : ''}
+                          onChange={(e) => changeJalali('y', parseInt(e.target.value, 10))}
+                          disabled={!jalaliSel || jalaliYearRange.length === 0}
+                          aria-label={t.jalaliYear}
+                          className="w-full text-xs p-1.5 bg-white text-slate-900 border border-slate-300 rounded outline-none"
+                        >
+                          {(!jalaliSel || jalaliYearRange.indexOf(jalaliSel.y) === -1) && (
+                            <option value="">{t.jalaliYear}</option>
+                          )}
+                          {jalaliYearRange.map((y) => (
+                            <option key={y} value={y}>
+                              {y}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
                       {card.due_date && (
                         <button
                           onClick={() => handleSetDueDate(null)}

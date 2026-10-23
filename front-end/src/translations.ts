@@ -34,6 +34,14 @@ export const translations = {
     labelName: 'نام برچسب',
     dueDate: 'تاریخ سررسید',
     noDueDate: 'بدون سررسید',
+    jalaliCalendar: 'تقویم جلالی',
+    jalaliYear: 'سال',
+    jalaliMonth: 'ماه',
+    jalaliDay: 'روز',
+    jalaliMonths: [
+      'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+      'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+    ],
     completed: 'تکمیل شده',
     overdue: 'گذشته از موعد',
     dueSoon: 'موعد نزدیک',
@@ -106,6 +114,14 @@ export const translations = {
     labelName: 'Label name',
     dueDate: 'Due Date',
     noDueDate: 'No due date',
+    jalaliCalendar: 'Jalali calendar',
+    jalaliYear: 'Year',
+    jalaliMonth: 'Month',
+    jalaliDay: 'Day',
+    jalaliMonths: [
+      'Farvardin', 'Ordibehesht', 'Khordad', 'Tir', 'Mordad', 'Shahrivar',
+      'Mehr', 'Aban', 'Azar', 'Dey', 'Bahman', 'Esfand'
+    ],
     completed: 'Completed',
     overdue: 'Overdue',
     dueSoon: 'Due soon',
