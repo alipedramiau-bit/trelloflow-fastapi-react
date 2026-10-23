@@ -1,0 +1,6 @@
+{
+  "name": "TrelloFlow - Kanban & Task Management",
+  "description": "A high-performance full-stack Trello clone powered by a Python REST backend with SQLite persistence and a responsive React Kanban board.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
